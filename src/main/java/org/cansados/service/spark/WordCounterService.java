@@ -1,8 +1,8 @@
 package org.cansados.service.spark;
 
 import org.apache.spark.launcher.SparkLauncher;
+import org.cansados.aggregations.WordCounter;
 import org.cansados.service.common.CansadosConfig;
-import org.cansados.spark.functions.WordCounter;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;

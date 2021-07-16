@@ -2,9 +2,15 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.cansados</groupId>
   <artifactId>dsid-ep2-spark</artifactId>
   <version>1.0.0-SNAPSHOT</version>
+
+  <parent>
+    <groupId>org.cansados</groupId>
+    <artifactId>dsid-ep2</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+  </parent>
+
   <properties>
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <maven.compiler.parameters>true</maven.compiler.parameters>
@@ -45,16 +51,6 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-arc</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.spark</groupId>
-      <artifactId>spark-core_2.12</artifactId>
-      <version>3.1.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.spark</groupId>
-      <artifactId>spark-sql_2.12</artifactId>
-      <version>3.1.2</version>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
