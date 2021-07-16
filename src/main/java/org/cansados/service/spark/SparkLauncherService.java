@@ -19,7 +19,7 @@ public class SparkLauncherService {
         this.launcher = new SparkLauncher()
                 .setMaster("local[*]")
                 .setSparkHome(config.getSparkHome())
-                .setAppResource("dsid-ep2-spark-1.0.0-SNAPSHOT.jar");
+                .setAppResource(config.getAggregationsPath());
     }
 
 

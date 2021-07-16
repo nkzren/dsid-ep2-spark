@@ -12,7 +12,14 @@ public class CansadosConfig {
     @ConfigProperty(name = "spark.home")
     String sparkHome;
 
+    @ConfigProperty(name = "spark.aggregations.jarPath")
+    String aggregationsPath;
+
     public String getSparkHome() {
         return sparkHome;
+    }
+
+    public String getAggregationsPath() {
+        return aggregationsPath;
     }
 }
