@@ -1,5 +1,7 @@
 spark.home=/home/renan/Documents/dev/spark-3.1.2-bin-hadoop3.2
 spark.aggregations.jarPath=/home/renan/Documents/dev/dsid-ep2/aggregation-functions/target/aggregation-functions-1.0.0-SNAPSHOT.jar
 spark.datasource.baseUrl=https://s3.amazonaws.com/aws-gsod
+spark.aws.access.key=MY_CANSADO_KEY
+spark.aws.secret.key=MY_CANSADO_SECRET
 quarkus.mongodb.connection-string=mongodb://root:example@localhost:27017/
 quarkus.mongodb.credentials.auth-source=admin
