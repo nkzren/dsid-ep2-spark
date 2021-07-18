@@ -41,7 +41,10 @@ public class SparkController {
             @QueryParam("to") Integer to,
             @QueryParam("id") String inventoryId
     ) {
-        List<InventoryItem> items = inventory.listByYear(new YearPeriod(from, to), inventoryId);
+        YearPeriod period = new YearPeriod(from, to);
+        launcherService.average(period, inventoryId);
+
+        List<InventoryItem> items = inventory.listByYear(period, inventoryId);
         return Map.of("years", items.stream().map(item -> {
             Integer year = item.getYear();
             Double average = 42.0;
