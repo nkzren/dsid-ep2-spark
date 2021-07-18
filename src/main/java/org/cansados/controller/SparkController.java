@@ -1,5 +1,8 @@
 package org.cansados.controller;
 
+import org.cansados.model.InventoryItem;
+import org.cansados.model.YearPeriod;
+import org.cansados.service.inventory.InventoryService;
 import org.cansados.service.spark.SparkLauncherService;
 
 import javax.enterprise.context.RequestScoped;
@@ -7,8 +10,9 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RequestScoped
@@ -17,6 +21,9 @@ public class SparkController {
 
     @Inject
     SparkLauncherService launcherService;
+
+    @Inject
+    InventoryService inventory;
 
     @GET
     @Path("wordCount")
@@ -29,9 +36,16 @@ public class SparkController {
     @GET
     @Path("average")
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, Object> getAverage() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("options", Map.of("test", "value"));
-        return map;
+    public Map<String, Object> getAverage(
+            @QueryParam("from") Integer from,
+            @QueryParam("to") Integer to,
+            @QueryParam("id") String inventoryId
+    ) {
+        List<InventoryItem> items = inventory.listByYear(new YearPeriod(from, to), inventoryId);
+        return Map.of("years", items.stream().map(item -> {
+            Integer year = item.getYear();
+            Double average = 42.0;
+            return Map.of("year", year, "average", average);
+        }));
     }
 }

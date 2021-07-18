@@ -1,4 +1,4 @@
-package org.cansados.service.chart;
+package org.cansados.model.chart;
 
 import javax.enterprise.inject.Model;
 
