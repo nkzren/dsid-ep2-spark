@@ -15,3 +15,5 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: example
     volumes:
       - ${PWD}/data:/data/db
+    ports:
+      - '27017:27017'
