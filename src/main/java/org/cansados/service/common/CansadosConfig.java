@@ -18,6 +18,13 @@ public class CansadosConfig {
     @ConfigProperty(name = "spark.datasource.baseUrl")
     String datasourceUrl;
 
+    @ConfigProperty(name = "spark.aws.access.key")
+    String awsAccessKey;
+
+
+    @ConfigProperty(name = "spark.aws.secret.key")
+    String awsSecretKey;
+
     public String getSparkHome() {
         return sparkHome;
     }
@@ -28,5 +35,13 @@ public class CansadosConfig {
 
     public String getAggregationsPath() {
         return aggregationsPath;
+    }
+
+    public String getAwsAccessKey() {
+        return awsAccessKey;
+    }
+
+    public String getAwsSecretKey() {
+        return awsSecretKey;
     }
 }

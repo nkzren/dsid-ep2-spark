@@ -7,7 +7,6 @@ import org.cansados.aggregations.WordCounter;
 import org.cansados.model.YearPeriod;
 import org.cansados.service.common.CansadosConfig;
 import org.cansados.service.spark.listener.SyncSparkListener;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -69,6 +68,10 @@ public class SparkLauncherService {
 
     private String[] buildArgs(YearPeriod period, String inventoryId) {
         List<String> argList = new ArrayList<>();
+
+        argList.add(config.getAwsAccessKey());
+        argList.add(config.getAwsSecretKey());
+
         for (int currentYear = period.getFrom(); currentYear <= period.getTo(); currentYear++) {
             StringBuilder sb = new StringBuilder(this.config.getDatasourceUrl());
             if (!this.config.getDatasourceUrl().endsWith("/")) {
