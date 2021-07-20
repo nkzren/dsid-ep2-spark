@@ -25,6 +25,9 @@ public class CansadosConfig {
     @ConfigProperty(name = "spark.aws.secret.key")
     String awsSecretKey;
 
+    @ConfigProperty(name = "quarkus.mongodb.connection-string")
+    String mongoConnection;
+
     public String getSparkHome() {
         return sparkHome;
     }
@@ -43,5 +46,9 @@ public class CansadosConfig {
 
     public String getAwsSecretKey() {
         return awsSecretKey;
+    }
+
+    public String getMongoConnection() {
+        return mongoConnection;
     }
 }

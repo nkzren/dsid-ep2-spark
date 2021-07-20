@@ -1,5 +1,6 @@
 package org.cansados.controller;
 
+import org.apache.spark.launcher.SparkAppHandle;
 import org.cansados.model.InventoryItem;
 import org.cansados.model.YearPeriod;
 import org.cansados.service.inventory.InventoryService;
@@ -12,8 +13,11 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+
+import static javax.ws.rs.core.Response.Status.*;
 
 @RequestScoped
 @Path("spark")
@@ -21,9 +25,6 @@ public class SparkController {
 
     @Inject
     SparkLauncherService launcherService;
-
-    @Inject
-    InventoryService inventory;
 
     @GET
     @Path("wordCount")
@@ -36,19 +37,28 @@ public class SparkController {
     @GET
     @Path("average")
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, Object> getAverage(
+    public Response getAverage(
             @QueryParam("from") Integer from,
             @QueryParam("to") Integer to,
             @QueryParam("id") String inventoryId
     ) {
         YearPeriod period = new YearPeriod(from, to);
-        launcherService.average(period, inventoryId);
+        Optional<SparkAppHandle> maybeHandle = launcherService.average(period, inventoryId);
+        if (maybeHandle.isEmpty()) {
+            return Response
+                    .status(INTERNAL_SERVER_ERROR)
+                    .entity("Error on spark launcher execution")
+                    .build();
+        } else {
+            SparkAppHandle handle = maybeHandle.get();
+            if (!handle.getState().equals(SparkAppHandle.State.FINISHED)) {
+                return Response
+                        .status(INTERNAL_SERVER_ERROR)
+                        .entity("Error on spark launcher. Status: " + handle.getState().toString())
+                        .build();
+            }
 
-        List<InventoryItem> items = inventory.listByYear(period, inventoryId);
-        return Map.of("years", items.stream().map(item -> {
-            Integer year = item.getYear();
-            Double average = 42.0;
-            return Map.of("year", year, "average", average);
-        }));
+            return Response.ok().build();
+        }
     }
 }

@@ -4,8 +4,10 @@ import org.apache.spark.launcher.SparkAppHandle;
 import org.apache.spark.launcher.SparkLauncher;
 import org.cansados.aggregations.AverageAggregator;
 import org.cansados.aggregations.WordCounter;
+import org.cansados.model.InventoryItem;
 import org.cansados.model.YearPeriod;
 import org.cansados.service.common.CansadosConfig;
+import org.cansados.service.inventory.InventoryService;
 import org.cansados.service.spark.listener.SyncSparkListener;
 
 import javax.enterprise.context.RequestScoped;
@@ -13,10 +15,15 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 
 @RequestScoped
 public class SparkLauncherService {
+
+    @Inject
+    InventoryService inventoryService;
 
     SparkLauncher launcher;
 
@@ -49,30 +56,41 @@ public class SparkLauncherService {
         }
     }
 
-    public void average(YearPeriod period, String inventoryId) {
+    public Optional<SparkAppHandle> average(YearPeriod period, String inventoryId) {
         this.countdown = new CountDownLatch(1);
         try {
             this.launcher
                     .setMainClass(AverageAggregator.class.getCanonicalName())
                     .addAppArgs(buildArgs(period, inventoryId));
 
-            SparkAppHandle.Listener handle = new SyncSparkListener(this.countdown);
-            this.launcher.startApplication(handle);
+            SparkAppHandle.Listener listener = new SyncSparkListener(this.countdown);
+            SparkAppHandle handle = this.launcher.startApplication(listener);
 
             countdown.await();
             System.out.println("Finished task");
+            return Optional.of(handle);
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+        return Optional.empty();
     }
 
     private String[] buildArgs(YearPeriod period, String inventoryId) {
         List<String> argList = new ArrayList<>();
 
+        // DO NOT CHANGE THE ORDER OF THE ADDS. AGGREGATOR FUNCTION TAKES THOSE 4 ARGUMENTS INTO CONSIDERATION
+        argList.add(config.getMongoConnection());
+
         argList.add(config.getAwsAccessKey());
         argList.add(config.getAwsSecretKey());
 
-        for (int currentYear = period.getFrom(); currentYear <= period.getTo(); currentYear++) {
+        argList.add(inventoryId);
+
+        List<Integer> yearsAvailable = inventoryService.listByYear(period, inventoryId).stream()
+                .map(InventoryItem::getYear)
+                .collect(Collectors.toList());
+
+        for (Integer currentYear : yearsAvailable) {
             StringBuilder sb = new StringBuilder(this.config.getDatasourceUrl());
             if (!this.config.getDatasourceUrl().endsWith("/")) {
                 sb.append("/");
