@@ -1,6 +1,6 @@
 package org.cansados.controller;
 
-import org.cansados.model.InventoryItem;
+import org.cansados.model.db.InventoryItem;
 import org.cansados.model.YearPeriod;
 import org.cansados.service.inventory.InventoryService;
 

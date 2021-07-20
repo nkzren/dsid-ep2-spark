@@ -4,7 +4,7 @@ import org.apache.spark.launcher.SparkAppHandle;
 import org.apache.spark.launcher.SparkLauncher;
 import org.cansados.aggregations.AverageAggregator;
 import org.cansados.aggregations.WordCounter;
-import org.cansados.model.InventoryItem;
+import org.cansados.model.db.InventoryItem;
 import org.cansados.model.YearPeriod;
 import org.cansados.service.common.CansadosConfig;
 import org.cansados.service.inventory.InventoryService;

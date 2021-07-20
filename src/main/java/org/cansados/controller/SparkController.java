@@ -1,9 +1,10 @@
 package org.cansados.controller;
 
+import io.quarkus.mongodb.panache.PanacheMongoEntityBase;
+import io.quarkus.mongodb.panache.PanacheQuery;
 import org.apache.spark.launcher.SparkAppHandle;
-import org.cansados.model.InventoryItem;
 import org.cansados.model.YearPeriod;
-import org.cansados.service.inventory.InventoryService;
+import org.cansados.model.db.AverageItem;
 import org.cansados.service.spark.SparkLauncherService;
 
 import javax.enterprise.context.RequestScoped;
@@ -16,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -43,6 +45,11 @@ public class SparkController {
             @QueryParam("id") String inventoryId
     ) {
         YearPeriod period = new YearPeriod(from, to);
+
+        // Deletes all related items before starting new calculation
+        String baseQuery = "{ $and: [ { inventoryId: ?1 }, { year: { $gte : ?2 } }, { year: { $lte : ?3 } }] }";
+        AverageItem.delete(baseQuery, inventoryId, from, to);
+
         Optional<SparkAppHandle> maybeHandle = launcherService.average(period, inventoryId);
         if (maybeHandle.isEmpty()) {
             return Response
@@ -57,8 +64,9 @@ public class SparkController {
                         .entity("Error on spark launcher. Status: " + handle.getState().toString())
                         .build();
             }
+            List<AverageItem> result = AverageItem.find(baseQuery, inventoryId, from, to).list();
 
-            return Response.ok().build();
+            return Response.ok(result).build();
         }
     }
 }

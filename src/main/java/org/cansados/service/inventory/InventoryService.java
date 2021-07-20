@@ -1,6 +1,6 @@
 package org.cansados.service.inventory;
 
-import org.cansados.model.InventoryItem;
+import org.cansados.model.db.InventoryItem;
 import org.cansados.model.YearPeriod;
 
 import javax.enterprise.context.ApplicationScoped;

@@ -1,4 +1,4 @@
-package org.cansados.model;
+package org.cansados.model.db;
 
 import io.quarkus.mongodb.panache.MongoEntity;
 import io.quarkus.mongodb.panache.PanacheMongoEntity;
