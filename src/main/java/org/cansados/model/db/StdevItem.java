@@ -7,8 +7,9 @@ import org.bson.codecs.pojo.annotations.BsonProperty;
 import javax.enterprise.inject.Model;
 
 @Model
-@MongoEntity(collection = "averages", database = "dsid")
-public class AverageItem extends PanacheMongoEntity {
+@MongoEntity(collection = "stdev", database = "dsid")
+public class StdevItem extends PanacheMongoEntity {
+
     @BsonProperty("inventoryId")
     private String inventoryId;
 
@@ -18,8 +19,8 @@ public class AverageItem extends PanacheMongoEntity {
     @BsonProperty("month")
     private Integer month;
 
-    @BsonProperty("avg")
-    private Double average;
+    @BsonProperty("stdev")
+    private Double stdev;
 
     public String getInventoryId() {
         return inventoryId;
@@ -37,12 +38,12 @@ public class AverageItem extends PanacheMongoEntity {
         this.year = year;
     }
 
-    public Double getAverage() {
-        return average;
+    public Double getStdev() {
+        return stdev;
     }
 
-    public void setAverage(Double average) {
-        this.average = average;
+    public void setStdev(Double stdev) {
+        this.stdev = stdev;
     }
 
     public Integer getMonth() {
@@ -52,4 +53,5 @@ public class AverageItem extends PanacheMongoEntity {
     public void setMonth(Integer month) {
         this.month = month;
     }
+
 }

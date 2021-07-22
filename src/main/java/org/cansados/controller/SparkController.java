@@ -5,6 +5,7 @@ import io.quarkus.mongodb.panache.PanacheQuery;
 import org.apache.spark.launcher.SparkAppHandle;
 import org.cansados.model.YearPeriod;
 import org.cansados.model.db.AverageItem;
+import org.cansados.model.db.StdevItem;
 import org.cansados.service.spark.SparkLauncherService;
 
 import javax.enterprise.context.RequestScoped;
@@ -64,6 +65,42 @@ public class SparkController {
                         .build();
             }
             List<AverageItem> result = AverageItem.find(baseQuery, inventoryId, from, to).list();
+
+            return Response.ok(result).build();
+        }
+    }
+
+    @GET
+    @Path("stdev/{groupBy}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getStdev(
+            @PathParam("groupBy") String groupBy,
+            @QueryParam("from") Integer from,
+            @QueryParam("to") Integer to,
+            @QueryParam("id") String inventoryId,
+            @QueryParam("columnName") String columnName
+    ) {
+        YearPeriod period = new YearPeriod(from, to);
+
+        // Deletes all related items before starting new calculation
+        String baseQuery = "{ $and: [ { inventoryId: ?1 }, { year: { $gte: ?2, $lte: ?3 } } ] }";
+        StdevItem.delete(baseQuery, inventoryId, from, to);
+
+        Optional<SparkAppHandle> maybeHandle = launcherService.stdev(period, inventoryId, groupBy, columnName);
+        if (maybeHandle.isEmpty()) {
+            return Response
+                    .status(INTERNAL_SERVER_ERROR)
+                    .entity("Error on spark launcher execution")
+                    .build();
+        } else {
+            SparkAppHandle handle = maybeHandle.get();
+            if (!handle.getState().equals(SparkAppHandle.State.FINISHED)) {
+                return Response
+                        .status(INTERNAL_SERVER_ERROR)
+                        .entity("Error on spark launcher. Status: " + handle.getState().toString())
+                        .build();
+            }
+            List<StdevItem> result = StdevItem.find(baseQuery, inventoryId, from, to).list();
 
             return Response.ok(result).build();
         }

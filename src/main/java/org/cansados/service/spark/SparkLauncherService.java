@@ -2,9 +2,7 @@ package org.cansados.service.spark;
 
 import org.apache.spark.launcher.SparkAppHandle;
 import org.apache.spark.launcher.SparkLauncher;
-import org.cansados.aggregations.AverageAggregatorByMonth;
-import org.cansados.aggregations.AverageAggregatorByYear;
-import org.cansados.aggregations.WordCounter;
+import org.cansados.aggregations.*;
 import org.cansados.model.db.InventoryItem;
 import org.cansados.model.YearPeriod;
 import org.cansados.service.common.CansadosConfig;
@@ -66,6 +64,31 @@ public class SparkLauncherService {
                 this.launcher.setMainClass(AverageAggregatorByYear.class.getCanonicalName());
             } else if ("month".equals(groupBy)) {
                 this.launcher.setMainClass(AverageAggregatorByMonth.class.getCanonicalName());
+            } else {
+                throw new IllegalArgumentException("Invalid groupBy value: " + groupBy);
+            }
+
+            SparkAppHandle.Listener listener = new SyncSparkListener(this.countdown);
+            SparkAppHandle handle = this.launcher.startApplication(listener);
+
+            countdown.await();
+            System.out.println("Finished task");
+            return Optional.of(handle);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return Optional.empty();
+    }
+
+    public Optional<SparkAppHandle> stdev(YearPeriod period, String inventoryId, String groupBy, String columnName) {
+        this.countdown = new CountDownLatch(1);
+        try {
+            this.launcher.addAppArgs(buildArgs(period, inventoryId, columnName));
+
+            if ("year".equals(groupBy)) {
+                this.launcher.setMainClass(StdevAggregatorByYear.class.getCanonicalName());
+            } else if ("month".equals(groupBy)) {
+                this.launcher.setMainClass(StdevAggregatorByMonth.class.getCanonicalName());
             } else {
                 throw new IllegalArgumentException("Invalid groupBy value: " + groupBy);
             }
