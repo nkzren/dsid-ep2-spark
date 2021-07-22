@@ -13,6 +13,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -105,7 +106,27 @@ public class SparkLauncherService {
         return Optional.empty();
     }
 
-    private String[] buildArgs(YearPeriod period, String inventoryId, String columnName) {
+
+    public Optional<SparkAppHandle> leastSquares(YearPeriod period, String inventoryId, String valueToPredict, String auxField) {
+        this.countdown = new CountDownLatch(1);
+        try {
+            this.launcher
+                    .addAppArgs(buildArgs(period, inventoryId, valueToPredict, auxField))
+                    .setMainClass(LeastSquares.class.getCanonicalName());
+
+            SparkAppHandle.Listener listener = new SyncSparkListener(this.countdown);
+            SparkAppHandle handle = this.launcher.startApplication(listener);
+
+            countdown.await();
+            System.out.println("Finished task");
+            return Optional.of(handle);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return Optional.empty();
+    }
+
+    private String[] buildArgs(YearPeriod period, String inventoryId, String... args) {
         List<String> argList = new ArrayList<>();
 
         // DO NOT CHANGE THE ORDER OF THE ADDS. AGGREGATOR FUNCTION TAKES THOSE 4 ARGUMENTS INTO CONSIDERATION
@@ -116,7 +137,7 @@ public class SparkLauncherService {
 
         argList.add(inventoryId);
 
-        argList.add(columnName);
+        argList.addAll(Arrays.asList(args));
 
         List<Integer> yearsAvailable = inventoryService.listByYear(period, inventoryId).stream()
                 .map(InventoryItem::getYear)

@@ -1,10 +1,9 @@
 package org.cansados.controller;
 
-import io.quarkus.mongodb.panache.PanacheMongoEntityBase;
-import io.quarkus.mongodb.panache.PanacheQuery;
 import org.apache.spark.launcher.SparkAppHandle;
 import org.cansados.model.YearPeriod;
 import org.cansados.model.db.AverageItem;
+import org.cansados.model.db.PredictedAverageItem;
 import org.cansados.model.db.StdevItem;
 import org.cansados.service.spark.SparkLauncherService;
 
@@ -15,7 +14,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -101,6 +99,42 @@ public class SparkController {
                         .build();
             }
             List<StdevItem> result = StdevItem.find(baseQuery, inventoryId, from, to).list();
+
+            return Response.ok(result).build();
+        }
+    }
+
+    @GET
+    @Path("predict_avg")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getPrediction(
+            @QueryParam("from") Integer from,
+            @QueryParam("to") Integer to,
+            @QueryParam("id") String inventoryId,
+            @QueryParam("toPredict") String toPredict,
+            @QueryParam("auxValue") String auxValue
+    ) {
+        YearPeriod period = new YearPeriod(from, to);
+
+        // Deletes all related items before starting new calculation
+        String baseQuery = "{ $and: [ { inventoryId: ?1 }, { year: { $gte: ?2, $lte: ?3 } } ] }";
+        PredictedAverageItem.delete(baseQuery, inventoryId, from, to);
+
+        Optional<SparkAppHandle> maybeHandle = launcherService.leastSquares(period, inventoryId, toPredict, auxValue);
+        if (maybeHandle.isEmpty()) {
+            return Response
+                    .status(INTERNAL_SERVER_ERROR)
+                    .entity("Error on spark launcher execution")
+                    .build();
+        } else {
+            SparkAppHandle handle = maybeHandle.get();
+            if (!handle.getState().equals(SparkAppHandle.State.FINISHED)) {
+                return Response
+                        .status(INTERNAL_SERVER_ERROR)
+                        .entity("Error on spark launcher. Status: " + handle.getState().toString())
+                        .build();
+            }
+            List<StdevItem> result = PredictedAverageItem.find(baseQuery, inventoryId, from, to).list();
 
             return Response.ok(result).build();
         }
