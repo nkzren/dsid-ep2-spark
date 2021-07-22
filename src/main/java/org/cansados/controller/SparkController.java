@@ -9,10 +9,7 @@ import org.cansados.service.spark.SparkLauncherService;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
@@ -37,20 +34,22 @@ public class SparkController {
     }
 
     @GET
-    @Path("average")
+    @Path("average/{groupBy}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAverage(
+            @PathParam("groupBy") String groupBy,
             @QueryParam("from") Integer from,
             @QueryParam("to") Integer to,
-            @QueryParam("id") String inventoryId
+            @QueryParam("id") String inventoryId,
+            @QueryParam("columnName") String columnName
     ) {
         YearPeriod period = new YearPeriod(from, to);
 
         // Deletes all related items before starting new calculation
-        String baseQuery = "{ $and: [ { inventoryId: ?1 }, { year: { $gte : ?2 } }, { year: { $lte : ?3 } }] }";
-        AverageItem.delete(baseQuery, inventoryId, from, to);
+        String baseQuery = "{ inventoryId: ?1 }";
+        AverageItem.delete(baseQuery, inventoryId);
 
-        Optional<SparkAppHandle> maybeHandle = launcherService.average(period, inventoryId);
+        Optional<SparkAppHandle> maybeHandle = launcherService.average(period, inventoryId, groupBy, columnName);
         if (maybeHandle.isEmpty()) {
             return Response
                     .status(INTERNAL_SERVER_ERROR)

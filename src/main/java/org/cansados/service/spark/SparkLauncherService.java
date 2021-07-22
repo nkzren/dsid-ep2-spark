@@ -2,7 +2,8 @@ package org.cansados.service.spark;
 
 import org.apache.spark.launcher.SparkAppHandle;
 import org.apache.spark.launcher.SparkLauncher;
-import org.cansados.aggregations.AverageAggregator;
+import org.cansados.aggregations.AverageAggregatorByMonth;
+import org.cansados.aggregations.AverageAggregatorByYear;
 import org.cansados.aggregations.WordCounter;
 import org.cansados.model.db.InventoryItem;
 import org.cansados.model.YearPeriod;
@@ -56,12 +57,18 @@ public class SparkLauncherService {
         }
     }
 
-    public Optional<SparkAppHandle> average(YearPeriod period, String inventoryId) {
+    public Optional<SparkAppHandle> average(YearPeriod period, String inventoryId, String groupBy, String columnName) {
         this.countdown = new CountDownLatch(1);
         try {
-            this.launcher
-                    .setMainClass(AverageAggregator.class.getCanonicalName())
-                    .addAppArgs(buildArgs(period, inventoryId));
+            this.launcher.addAppArgs(buildArgs(period, inventoryId, columnName));
+
+            if ("year".equals(groupBy)) {
+                this.launcher.setMainClass(AverageAggregatorByYear.class.getCanonicalName());
+            } else if ("month".equals(groupBy)) {
+                this.launcher.setMainClass(AverageAggregatorByMonth.class.getCanonicalName());
+            } else {
+                throw new IllegalArgumentException("Invalid groupBy value: " + groupBy);
+            }
 
             SparkAppHandle.Listener listener = new SyncSparkListener(this.countdown);
             SparkAppHandle handle = this.launcher.startApplication(listener);
@@ -75,7 +82,7 @@ public class SparkLauncherService {
         return Optional.empty();
     }
 
-    private String[] buildArgs(YearPeriod period, String inventoryId) {
+    private String[] buildArgs(YearPeriod period, String inventoryId, String columnName) {
         List<String> argList = new ArrayList<>();
 
         // DO NOT CHANGE THE ORDER OF THE ADDS. AGGREGATOR FUNCTION TAKES THOSE 4 ARGUMENTS INTO CONSIDERATION
@@ -85,6 +92,8 @@ public class SparkLauncherService {
         argList.add(config.getAwsSecretKey());
 
         argList.add(inventoryId);
+
+        argList.add(columnName);
 
         List<Integer> yearsAvailable = inventoryService.listByYear(period, inventoryId).stream()
                 .map(InventoryItem::getYear)
