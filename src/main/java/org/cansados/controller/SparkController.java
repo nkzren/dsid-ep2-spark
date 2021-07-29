@@ -1,5 +1,6 @@
 package org.cansados.controller;
 
+import io.quarkus.panache.common.Sort;
 import org.apache.spark.launcher.SparkAppHandle;
 import org.cansados.model.YearPeriod;
 import org.cansados.model.db.AverageItem;
@@ -12,8 +13,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -64,8 +64,23 @@ public class SparkController {
             }
             List<AverageItem> result = AverageItem.find(baseQuery, inventoryId, from, to).list();
 
-            return Response.ok(result).build();
+            return Response.ok(Map.of(
+                    "data", result.stream().map(AverageItem::getAverage),
+                    "labels", buildAvgLabels(result, groupBy)
+            )).build();
         }
+    }
+
+    private List<String> buildAvgLabels(List<AverageItem> result, String groupBy) {
+        List<String> list = new ArrayList<>();
+
+        if ("year".equals(groupBy)) {
+            result.forEach(it -> list.add(String.valueOf(it.getYear())));
+        } else {
+            result.forEach(it -> list.add(it.getMonth() + "/" + it.getYear()));
+        }
+
+        return list;
     }
 
     @GET
@@ -98,10 +113,25 @@ public class SparkController {
                         .entity("Error on spark launcher. Status: " + handle.getState().toString())
                         .build();
             }
-            List<StdevItem> result = StdevItem.find(baseQuery, inventoryId, from, to).list();
+            List<StdevItem> result = StdevItem.find(baseQuery, Sort.by("year", "month"),inventoryId, from, to).list();
 
-            return Response.ok(result).build();
+            return Response.ok(Map.of(
+                    "data", result.stream().map(StdevItem::getStdev),
+                    "labels", buildStdevLabels(result, groupBy)
+            )).build();
         }
+    }
+
+    private List<String> buildStdevLabels(List<StdevItem> result, String groupBy) {
+        List<String> list = new ArrayList<>();
+
+        if ("year".equals(groupBy)) {
+            result.forEach(it -> list.add(String.valueOf(it.getYear())));
+        } else {
+            result.forEach(it -> list.add(it.getMonth() + "/" + it.getYear()));
+        }
+
+        return list;
     }
 
     @GET
