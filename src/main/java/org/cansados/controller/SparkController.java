@@ -25,14 +25,6 @@ public class SparkController {
     SparkLauncherService launcherService;
 
     @GET
-    @Path("wordCount")
-    @Produces(MediaType.TEXT_PLAIN)
-    public String test() {
-        launcherService.wordCount();
-        return "ae";
-    }
-
-    @GET
     @Path("average/{groupBy}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAverage(
