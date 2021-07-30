@@ -37,7 +37,8 @@ public class SparkLauncherService {
         this.launcher = new SparkLauncher()
                 .setMaster("local[5]")
                 .setSparkHome(config.getSparkHome())
-                .setAppResource(config.getAggregationsPath());
+                .setAppResource(config.getAggregationsPath())
+                .setConf("spark.jars.ivy", "/tmp/.ivy2");
         this.config = config;
     }
 
