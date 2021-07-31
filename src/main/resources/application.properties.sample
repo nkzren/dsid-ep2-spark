@@ -1,10 +1,11 @@
-spark.home=/home/renan/Documents/dev/spark-3.1.2-bin-hadoop3.2
+spark.home=/spark
 spark.aggregations.jarPath=/aggregations/aggregation-functions-1.0.0-SNAPSHOT-jar-with-dependencies.jar
 spark.datasource.baseUrl=s3a://aws-gsod
 spark.aws.access.key=MY_AWESOME_ACCESS_KEY
 spark.aws.secret.key=MY_AWESOME_SECRET_KEY
-quarkus.mongodb.connection-string=mongodb://root:example@localhost:27017/
+quarkus.mongodb.connection-string=mongodb://root:example@mongo:27017/
 quarkus.mongodb.credentials.auth-source=admin
 quarkus.http.port=8080
 quarkus.http.cors=true
 quarkus.http.cors.origins=*
+quarkus.swagger-ui.always-include=true
